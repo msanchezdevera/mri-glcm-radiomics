@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from skimage.feature import graycomatrix, graycoprops
 
-from features import LEVELS, load_brain, quantize
+from .features import LEVELS, load_brain, quantize
 
 
 def glcm_of(path: Path):

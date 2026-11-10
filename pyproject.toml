@@ -1,0 +1,10 @@
+[project]
+name = "mri-radiomics-agent"
+version = "1.0.0"
+description = "GLCM radiomics model for brain MRI, served with FastAPI and wrapped in a tool-using agent"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "tests"]
+filterwarnings = ["ignore::DeprecationWarning"]
