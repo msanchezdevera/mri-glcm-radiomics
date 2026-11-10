@@ -1,0 +1,122 @@
+{
+  "binary": {
+    "Regresión logística": {
+      "cv_f1_macro": 0.9263,
+      "test_accuracy": 0.9294,
+      "test_f1_macro": 0.909,
+      "test_roc_auc": 0.975
+    },
+    "SVM (RBF)": {
+      "cv_f1_macro": 0.974,
+      "test_accuracy": 0.9656,
+      "test_f1_macro": 0.956,
+      "test_roc_auc": 0.9942
+    },
+    "Random Forest": {
+      "cv_f1_macro": 0.9658,
+      "test_accuracy": 0.9663,
+      "test_f1_macro": 0.9567,
+      "test_roc_auc": 0.9971
+    },
+    "Gradient Boosting": {
+      "cv_f1_macro": 0.9723,
+      "test_accuracy": 0.9731,
+      "test_f1_macro": 0.9654,
+      "test_roc_auc": 0.9984
+    },
+    "_best": "SVM (RBF)",
+    "_classification_report": {
+      "0": {
+        "precision": 0.8824833702882483,
+        "recall": 0.995,
+        "f1-score": 0.9353701527614571,
+        "support": 400.0
+      },
+      "1": {
+        "precision": 0.9982593559617058,
+        "recall": 0.9558333333333333,
+        "f1-score": 0.9765857811834824,
+        "support": 1200.0
+      },
+      "accuracy": 0.965625,
+      "macro avg": {
+        "precision": 0.940371363124977,
+        "recall": 0.9754166666666666,
+        "f1-score": 0.9559779669724697,
+        "support": 1600.0
+      },
+      "weighted avg": {
+        "precision": 0.9693153595433414,
+        "recall": 0.965625,
+        "f1-score": 0.9662818740779762,
+        "support": 1600.0
+      }
+    }
+  },
+  "multiclass": {
+    "Regresión logística": {
+      "cv_f1_macro": 0.7759,
+      "test_accuracy": 0.7081,
+      "test_f1_macro": 0.7035,
+      "test_roc_auc": 0.8906
+    },
+    "SVM (RBF)": {
+      "cv_f1_macro": 0.8898,
+      "test_accuracy": 0.8406,
+      "test_f1_macro": 0.8363,
+      "test_roc_auc": 0.9485
+    },
+    "Random Forest": {
+      "cv_f1_macro": 0.8903,
+      "test_accuracy": 0.8688,
+      "test_f1_macro": 0.8633,
+      "test_roc_auc": 0.9653
+    },
+    "Gradient Boosting": {
+      "cv_f1_macro": 0.9145,
+      "test_accuracy": 0.9006,
+      "test_f1_macro": 0.8972,
+      "test_roc_auc": 0.9726
+    },
+    "_best": "Gradient Boosting",
+    "_classification_report": {
+      "glioma": {
+        "precision": 0.930921052631579,
+        "recall": 0.7075,
+        "f1-score": 0.8039772727272727,
+        "support": 400.0
+      },
+      "meningioma": {
+        "precision": 0.8526077097505669,
+        "recall": 0.94,
+        "f1-score": 0.8941736028537456,
+        "support": 400.0
+      },
+      "notumor": {
+        "precision": 0.8771929824561403,
+        "recall": 1.0,
+        "f1-score": 0.9345794392523364,
+        "support": 400.0
+      },
+      "pituitary": {
+        "precision": 0.9573934837092731,
+        "recall": 0.955,
+        "f1-score": 0.9561952440550688,
+        "support": 400.0
+      },
+      "accuracy": 0.900625,
+      "macro avg": {
+        "precision": 0.9045288071368899,
+        "recall": 0.900625,
+        "f1-score": 0.8972313897221059,
+        "support": 1600.0
+      },
+      "weighted avg": {
+        "precision": 0.9045288071368899,
+        "recall": 0.900625,
+        "f1-score": 0.8972313897221058,
+        "support": 1600.0
+      }
+    }
+  }
+}
