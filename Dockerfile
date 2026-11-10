@@ -7,6 +7,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY mri_radiomics/ mri_radiomics/
 COPY models/ models/
 COPY skills/ skills/
+COPY assets/samples/ assets/samples/
 
 ENV LLM_PROVIDER=mock RADIOMICS_DB=/data/agent.db
 VOLUME /data

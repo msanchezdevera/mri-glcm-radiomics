@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MRI Radiomics Agent</title>
+<style>
+  :root { --bg:#0f1419; --panel:#1a2029; --line:#2a3240; --text:#e6e9ee; --muted:#8b95a5;
+          --accent:#4f9cf9; --ok:#3fb950; --warn:#d29922; --err:#f85149; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+         background:var(--bg); color:var(--text); }
+  header { padding:16px 24px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  header h1 { font-size:18px; margin:0; }
+  header .tag { font-size:12px; color:var(--muted); }
+  #health { margin-left:auto; font-size:12px; color:var(--muted); }
+  main { display:grid; grid-template-columns: 360px 1fr; gap:16px; padding:16px 24px; max-width:1200px; margin:auto; }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; padding:12px; } }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; }
+  .panel h2 { font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:0 0 12px; }
+  #drop { border:2px dashed var(--line); border-radius:8px; padding:20px; text-align:center; cursor:pointer; color:var(--muted); }
+  #drop.over { border-color:var(--accent); color:var(--text); }
+  #preview { width:100%; border-radius:8px; margin-top:12px; display:none; }
+  .samples { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+  button, .chip { background:#253042; color:var(--text); border:1px solid var(--line); border-radius:6px;
+           padding:6px 10px; cursor:pointer; font:inherit; font-size:12px; }
+  button:hover, .chip:hover { border-color:var(--accent); }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .result { margin-top:14px; }
+  .label { font-size:20px; font-weight:600; }
+  .bar { display:flex; align-items:center; gap:8px; margin:4px 0; font-size:12px; }
+  .bar span:first-child { width:90px; color:var(--muted); }
+  .bar .track { flex:1; height:8px; background:#253042; border-radius:4px; overflow:hidden; }
+  .bar .fill { height:100%; background:var(--accent); }
+  .drivers { font-size:12px; color:var(--muted); margin-top:8px; }
+  #cases { list-style:none; padding:0; margin:0; max-height:200px; overflow:auto; }
+  #cases li { padding:6px 8px; border-radius:6px; cursor:pointer; display:flex; justify-content:space-between; font-size:13px; }
+  #cases li:hover, #cases li.active { background:#253042; }
+  .chat { display:flex; flex-direction:column; height:calc(100vh - 110px); min-height:520px; }
+  #log { flex:1; overflow:auto; display:flex; flex-direction:column; gap:10px; padding-right:4px; }
+  .msg { max-width:85%; padding:10px 12px; border-radius:10px; white-space:pre-wrap; }
+  .user { align-self:flex-end; background:var(--accent); color:#fff; }
+  .agent { align-self:flex-start; background:#253042; }
+  .trace { font-size:11px; color:var(--muted); margin-top:6px; display:flex; gap:4px; flex-wrap:wrap; }
+  .trace .t { background:#1a2029; border:1px solid var(--line); border-radius:4px; padding:1px 6px; }
+  .trace .t.err { border-color:var(--err); color:var(--err); }
+  .suggest { display:flex; gap:6px; flex-wrap:wrap; margin:10px 0; }
+  form { display:flex; gap:8px; }
+  input[type=text] { flex:1; background:#0f1419; color:var(--text); border:1px solid var(--line); border-radius:6px; padding:10px; font:inherit; }
+  .active-case { font-size:12px; color:var(--muted); margin-bottom:8px; }
+  footer { text-align:center; color:var(--muted); font-size:12px; padding:8px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>MRI Radiomics Agent</h1>
+  <span class="tag">GLCM texture model + tool-using agent</span>
+  <span id="health">connecting…</span>
+</header>
+
+<main>
+  <section>
+    <div class="panel">
+      <h2>1. Upload a slice</h2>
+      <div id="drop">Drop a brain MRI (JPG/PNG) or click to choose
+        <input id="file" type="file" accept="image/jpeg,image/png" hidden>
+      </div>
+      <div class="samples">
+        <span style="font-size:12px;color:var(--muted)">or try a sample:</span>
+        <button data-sample="glioma">glioma</button>
+        <button data-sample="meningioma">meningioma</button>
+        <button data-sample="pituitary">pituitary</button>
+        <button data-sample="notumor">no tumor</button>
+      </div>
+      <img id="preview" alt="uploaded slice">
+      <div id="result" class="result"></div>
+    </div>
+    <div class="panel" style="margin-top:16px">
+      <h2>Cases in memory</h2>
+      <ul id="cases"></ul>
+    </div>
+  </section>
+
+  <section class="panel chat">
+    <h2>2. Ask the agent</h2>
+    <div class="active-case" id="activeCase">No active case. Upload one, or ask about the model.</div>
+    <div id="log"></div>
+    <div class="suggest">
+      <span class="chip">Why this result?</span>
+      <span class="chip">Write a report for this case</span>
+      <span class="chip">Show similar cases</span>
+      <span class="chip">How accurate is the model?</span>
+      <span class="chip">Show me previous cases</span>
+    </div>
+    <form id="form">
+      <input id="msg" type="text" placeholder="Ask about the active case…" autocomplete="off">
+      <button class="primary" type="submit">Send</button>
+    </form>
+  </section>
+</main>
+<footer>Research demo. Not a medical device and not a diagnostic tool.</footer>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const NAMES = { glioma: "Glioma", meningioma: "Meningioma", pituitary: "Pituitary", notumor: "No tumor" };
+const session = "web-" + Math.random().toString(36).slice(2, 10);
+let activeCase = null;
+
+async function health() {
+  try {
+    const h = await (await fetch("/health")).json();
+    $("#health").textContent = `LLM: ${h.llm} · test accuracy ${(h.model_metrics.test_accuracy * 100).toFixed(1)}%`;
+  } catch { $("#health").textContent = "API unreachable"; }
+}
+
+async function loadCases() {
+  const cases = await (await fetch("/cases?limit=20")).json();
+  $("#cases").innerHTML = cases.length ? "" : '<li style="cursor:default;color:var(--muted)">None yet</li>';
+  for (const c of cases) {
+    const li = document.createElement("li");
+    li.innerHTML = `<span>${c.case_id} · ${c.filename}</span><span>${NAMES[c.prediction.label]}</span>`;
+    if (c.case_id === activeCase) li.classList.add("active");
+    li.onclick = () => setActive(c.case_id, c.prediction);
+    $("#cases").appendChild(li);
+  }
+}
+
+function renderPrediction(pred) {
+  const bars = Object.entries(pred.probabilities).sort((a, b) => b[1] - a[1]).map(([k, v]) =>
+    `<div class="bar"><span>${NAMES[k]}</span><div class="track"><div class="fill" style="width:${v * 100}%"></div></div><span>${(v * 100).toFixed(1)}%</span></div>`).join("");
+  $("#result").innerHTML = `<div class="label">${pred.display}</div>${bars}`;
+}
+
+function setActive(id, pred) {
+  activeCase = id;
+  $("#activeCase").textContent = `Active case: ${id}`;
+  if (pred) renderPrediction(pred);
+  loadCases();
+}
+
+async function upload(blob, name) {
+  $("#preview").src = URL.createObjectURL(blob);
+  $("#preview").style.display = "block";
+  $("#result").textContent = "Extracting GLCM features…";
+  const fd = new FormData();
+  fd.append("file", new File([blob], name, { type: blob.type || "image/jpeg" }));
+  const r = await fetch("/cases", { method: "POST", body: fd });
+  const data = await r.json();
+  if (!r.ok) { $("#result").textContent = data.detail || "Upload failed"; return; }
+  setActive(data.case_id, data.prediction);
+}
+
+function addMsg(text, who, trace) {
+  const div = document.createElement("div");
+  div.className = `msg ${who}`;
+  div.textContent = text;
+  if (trace) {
+    const t = document.createElement("div");
+    t.className = "trace";
+    const tools = trace.filter((s) => s.kind === "tool");
+    const ms = trace.reduce((a, s) => a + s.latency_ms, 0);
+    t.innerHTML = tools.map((s) => `<span class="t ${s.is_error ? "err" : ""}">${s.name}</span>`).join("") +
+      `<span>${trace.length} steps · ${ms.toFixed(0)} ms</span>`;
+    div.appendChild(t);
+  }
+  $("#log").appendChild(div);
+  $("#log").scrollTop = $("#log").scrollHeight;
+}
+
+async function send(text) {
+  if (!text.trim()) return;
+  addMsg(text, "user");
+  $("#msg").value = "";
+  const r = await fetch("/agent/chat", {
+    method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ session_id: session, message: text, case_id: activeCase }),
+  });
+  const data = await r.json();
+  addMsg(r.ok ? data.reply : (data.detail || "Error"), "agent", r.ok ? data.trace : null);
+  loadCases();
+}
+
+$("#drop").onclick = () => $("#file").click();
+$("#file").onchange = (e) => e.target.files[0] && upload(e.target.files[0], e.target.files[0].name);
+$("#drop").ondragover = (e) => { e.preventDefault(); $("#drop").classList.add("over"); };
+$("#drop").ondragleave = () => $("#drop").classList.remove("over");
+$("#drop").ondrop = (e) => { e.preventDefault(); $("#drop").classList.remove("over");
+  const f = e.dataTransfer.files[0]; if (f) upload(f, f.name); };
+document.querySelectorAll("[data-sample]").forEach((b) => b.onclick = async () => {
+  const blob = await (await fetch(`/samples/${b.dataset.sample}.jpg`)).blob();
+  upload(blob, `${b.dataset.sample}.jpg`);
+});
+document.querySelectorAll(".chip").forEach((c) => c.onclick = () => send(c.textContent));
+$("#form").onsubmit = (e) => { e.preventDefault(); send($("#msg").value); };
+
+health();
+loadCases();
+</script>
+</body>
+</html>

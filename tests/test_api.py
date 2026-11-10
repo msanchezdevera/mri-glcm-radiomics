@@ -40,3 +40,8 @@ def test_case_flow_and_chat(client):
                                          "case_id": case["case_id"]}).json()
     assert r["tool_calls"] == ["predict", "explain_prediction"] and "Glioma" in r["reply"]
     assert client.get("/cases/nope").status_code == 404
+
+
+def test_ui_and_samples(client):
+    assert "MRI Radiomics Agent" in client.get("/").text
+    assert client.get("/samples/glioma.jpg").status_code == 200

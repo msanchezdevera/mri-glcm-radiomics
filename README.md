@@ -31,6 +31,7 @@ flowchart LR
 | **Skills** | Markdown instructions (`case-report`, `compare-cases`, `explain-glcm`). Only names and descriptions sit in the system prompt; the agent loads the body when the task matches. New behaviour = new file, no code. | `skills/` |
 | **LLM providers** | Anthropic and OpenAI over plain HTTP with retry/backoff, behind one interface. A deterministic mock runs everything offline. | `mri_radiomics/agent/llm.py` |
 | **Evals** | 30 scenarios scoring tool selection, grounding (the class named matches the model's prediction), refusal of medical advice, error handling and step budget. Fails CI below 90%. | `evals/` |
+| **Web UI** | Single-file HTML/JS served at `/`: upload a slice or pick a sample, see class probabilities, chat with the agent and see which tools each answer used. No build step. | `mri_radiomics/api/static/index.html` |
 | **API** | Upload validation (type, size), dependency injection, typed request/response models, OpenAPI docs at `/docs`. | `mri_radiomics/api/main.py` |
 | **Ops** | Dockerfile with healthcheck; GitHub Actions runs tests, evals and a container smoke test. | `Dockerfile`, `.github/workflows/ci.yml` |
 
@@ -39,6 +40,7 @@ flowchart LR
 ```bash
 pip install -r requirements.txt
 uvicorn mri_radiomics.api.main:app --reload        # mock LLM by default, no key needed
+# open http://localhost:8000 for the web UI, /docs for the API
 
 # or with a real model
 export LLM_PROVIDER=anthropic ANTHROPIC_API_KEY=...   # or openai + OPENAI_API_KEY
@@ -74,7 +76,7 @@ docker run -p 8000:8000 -e LLM_PROVIDER=anthropic -e ANTHROPIC_API_KEY=... mri-r
 
 ```bash
 pip install -r requirements-dev.txt
-pytest -q                                   # 19 tests: model, tools, harness, API
+pytest -q                                   # 20 tests: model, tools, harness, API
 python -m evals.run                         # offline, mock LLM
 LLM_PROVIDER=anthropic python -m evals.run  # same suite against a real model
 ```
@@ -149,6 +151,7 @@ mri_radiomics/
   train.py            model comparison with cross-validation
   model.py            served artifact: classifier, explanations, k-NN index
   api/main.py         FastAPI service
+  api/static/         web UI
   agent/harness.py    agent loop, guardrail, tracing
   agent/tools.py      tool registry with Pydantic schemas
   agent/memory.py     SQLite session + long-term memory

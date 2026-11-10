@@ -1,5 +1,6 @@
 """FastAPI service.
 
+  GET  /                  minimal web UI
   GET  /health            liveness + model metrics
   POST /predict           one-shot classification of an uploaded image
   POST /cases             upload an image, store it as a case for the agent
@@ -15,6 +16,8 @@ from functools import lru_cache
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from ..agent.harness import Agent
@@ -24,6 +27,8 @@ from ..model import RadiomicsModel, get_model
 
 MAX_BYTES = 10 * 1024 * 1024
 ALLOWED = {"image/jpeg", "image/png"}
+STATIC = Path(__file__).parent / "static"
+SAMPLES = Path(__file__).resolve().parents[2] / "assets" / "samples"
 
 app = FastAPI(title="MRI Radiomics Agent", version="1.0.0",
               description="GLCM texture model + tool-using agent. Research demo, not a medical device.")
@@ -66,6 +71,15 @@ async def _featurize(file: UploadFile, model: RadiomicsModel) -> dict:
             return model.featurize(Path(tmp.name))
         except Exception as e:
             raise HTTPException(422, f"could not read image: {e}") from e
+
+
+if SAMPLES.is_dir():
+    app.mount("/samples", StaticFiles(directory=SAMPLES), name="samples")
+
+
+@app.get("/", include_in_schema=False)
+def ui():
+    return FileResponse(STATIC / "index.html")
 
 
 @app.get("/health")
