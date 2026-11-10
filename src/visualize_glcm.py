@@ -1,4 +1,4 @@
-"""Compara visualmente la GLCM de una MRI sin tumor y una con tumor."""
+"""Visually compare the GLCM of a healthy MRI slice and a tumor slice."""
 import argparse
 from pathlib import Path
 
@@ -28,15 +28,15 @@ if __name__ == "__main__":
     args = ap.parse_args()
 
     fig, axes = plt.subplots(2, 2, figsize=(9, 9))
-    for row, (title, path) in enumerate((("Sin tumor", args.healthy), ("Con tumor", args.tumor))):
+    for row, (title, path) in enumerate((("No tumor", args.healthy), ("Tumor", args.tumor))):
         img, g, props = glcm_of(path)
         axes[row, 0].imshow(img, cmap="gray")
         axes[row, 0].set_title(f"MRI — {title}")
         axes[row, 0].axis("off")
         axes[row, 1].imshow(np.log1p(g * 1e4), cmap="viridis")
-        axes[row, 1].set_title("GLCM (escala log)\n" + " · ".join(f"{k} {v:.2f}" for k, v in props.items()), fontsize=9)
-        axes[row, 1].set_xlabel("nivel de gris j")
-        axes[row, 1].set_ylabel("nivel de gris i")
+        axes[row, 1].set_title("GLCM (log scale)\n" + " · ".join(f"{k} {v:.2f}" for k, v in props.items()), fontsize=9)
+        axes[row, 1].set_xlabel("gray level j")
+        axes[row, 1].set_ylabel("gray level i")
     plt.tight_layout()
     args.out.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(args.out, dpi=150)

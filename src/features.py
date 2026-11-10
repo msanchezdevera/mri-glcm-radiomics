@@ -1,4 +1,4 @@
-"""Extracción de características de textura (GLCM) y de primer orden en MRI cerebrales."""
+"""Texture (GLCM) and first-order feature extraction for brain MRI slices."""
 from __future__ import annotations
 
 import argparse
@@ -21,7 +21,7 @@ GLCM_PROPS = ("contrast", "dissimilarity", "homogeneity", "energy", "correlation
 
 
 def load_brain(path: Path, size: int = 256) -> tuple[np.ndarray, np.ndarray]:
-    """Carga la imagen, la pasa a gris, la recorta al cerebro y devuelve imagen + máscara."""
+    """Load an image, convert to grayscale, crop to the brain and return image + mask."""
     img = io.imread(path)
     if img.ndim == 3:
         img = rgb2gray(img[..., :3])
@@ -45,7 +45,7 @@ def glcm_features(img_q: np.ndarray, levels: int = LEVELS) -> dict[str, float]:
                         levels=levels, symmetric=True, normed=True)
     feats: dict[str, float] = {}
     for prop in GLCM_PROPS:
-        values = graycoprops(glcm, prop)  # (distancias, ángulos)
+        values = graycoprops(glcm, prop)  # (distances, angles)
         for i, d in enumerate(DISTANCES):
             feats[f"glcm_{prop}_d{d}_mean"] = float(values[i].mean())
             feats[f"glcm_{prop}_d{d}_range"] = float(np.ptp(values[i]))
@@ -100,4 +100,4 @@ if __name__ == "__main__":
     df = build_table(args.data, args.jobs)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(args.out, index=False)
-    print(f"{len(df)} imágenes, {df.shape[1] - 3} features -> {args.out}")
+    print(f"{len(df)} images, {df.shape[1] - 3} features -> {args.out}")

@@ -1,8 +1,8 @@
-"""Entrena y evalúa clasificadores sobre las features de textura.
+"""Train and evaluate classifiers on the texture features.
 
-Dos tareas:
-  - binary: tumor vs sin tumor
-  - multiclass: glioma, meningioma, pituitario, sin tumor
+Two tasks:
+  - binary: tumor vs no tumor
+  - multiclass: glioma, meningioma, pituitary, no tumor
 """
 from __future__ import annotations
 
@@ -24,13 +24,13 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
-LABELS_ES = {"glioma": "Glioma", "meningioma": "Meningioma",
-             "pituitary": "Pituitario", "notumor": "Sin tumor"}
+LABELS = {"glioma": "Glioma", "meningioma": "Meningioma",
+          "pituitary": "Pituitary", "notumor": "No tumor"}
 
 
 def models() -> dict:
     return {
-        "Regresión logística": make_pipeline(StandardScaler(), LogisticRegression(max_iter=5000, C=1.0)),
+        "Logistic Regression": make_pipeline(StandardScaler(), LogisticRegression(max_iter=5000, C=1.0)),
         "SVM (RBF)": make_pipeline(StandardScaler(), SVC(C=10, gamma="scale", probability=True)),
         "Random Forest": RandomForestClassifier(n_estimators=400, n_jobs=-1, random_state=42),
         "Gradient Boosting": HistGradientBoostingClassifier(max_iter=400, learning_rate=0.08, random_state=42),
@@ -62,16 +62,16 @@ def run(df: pd.DataFrame, task: str, out: Path) -> dict:
 
     best = models()[best_name].fit(X_tr, y_tr)
     pred = best.predict(X_te)
-    names = ["Sin tumor", "Tumor"] if task == "binary" else None
+    names = ["No tumor", "Tumor"] if task == "binary" else None
     if task == "multiclass":
         order = ["glioma", "meningioma", "pituitary", "notumor"]
         disp = ConfusionMatrixDisplay.from_predictions(
-            y_te, pred, labels=order, display_labels=[LABELS_ES[o] for o in order],
+            y_te, pred, labels=order, display_labels=[LABELS[o] for o in order],
             normalize="true", cmap="Blues", values_format=".2f")
     else:
         disp = ConfusionMatrixDisplay.from_predictions(
             y_te, pred, display_labels=names, normalize="true", cmap="Blues", values_format=".2f")
-    disp.ax_.set_title(f"{best_name} — {'tumor vs sin tumor' if task == 'binary' else '4 clases'}")
+    disp.ax_.set_title(f"{best_name} — {'tumor vs no tumor' if task == 'binary' else '4 classes'}")
     plt.tight_layout()
     plt.savefig(out / f"confusion_{task}.png", dpi=150)
     plt.close()
@@ -84,8 +84,8 @@ def run(df: pd.DataFrame, task: str, out: Path) -> dict:
         imp = pd.Series(rf.feature_importances_, index=feats).sort_values().tail(12)
         plt.figure(figsize=(7, 5))
         imp.plot.barh(color="#2b6cb0")
-        plt.title("Features más importantes (Random Forest)")
-        plt.xlabel("Importancia")
+        plt.title("Top features (Random Forest importance)")
+        plt.xlabel("Importance")
         plt.tight_layout()
         plt.savefig(out / "feature_importance.png", dpi=150)
         plt.close()

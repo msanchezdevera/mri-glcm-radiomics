@@ -1,6 +1,6 @@
 {
   "binary": {
-    "Regresión logística": {
+    "Logistic Regression": {
       "cv_f1_macro": 0.9263,
       "test_accuracy": 0.9294,
       "test_f1_macro": 0.909,
@@ -54,7 +54,7 @@
     }
   },
   "multiclass": {
-    "Regresión logística": {
+    "Logistic Regression": {
       "cv_f1_macro": 0.7759,
       "test_accuracy": 0.7081,
       "test_f1_macro": 0.7035,
@@ -64,7 +64,7 @@
       "cv_f1_macro": 0.8898,
       "test_accuracy": 0.8406,
       "test_f1_macro": 0.8363,
-      "test_roc_auc": 0.9485
+      "test_roc_auc": 0.9482
     },
     "Random Forest": {
       "cv_f1_macro": 0.8903,

@@ -1,4 +1,4 @@
-"""Descarga el Brain Tumor MRI Dataset (Masoud Nickparvar) desde Hugging Face a ./data."""
+"""Download the Brain Tumor MRI Dataset (Masoud Nickparvar) from Hugging Face into ./data."""
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -31,4 +31,4 @@ if __name__ == "__main__":
              if s["rfilename"].endswith(".jpg")]
     with ThreadPoolExecutor(args.workers) as ex:
         list(ex.map(lambda f: fetch(f, args.out), files))
-    print(f"{len(files)} imágenes en {args.out}")
+    print(f"{len(files)} images in {args.out}")
